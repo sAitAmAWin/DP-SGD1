@@ -22,6 +22,7 @@ from models.ini_loss import compute_loss
 from models.param_length import param_length
 import numpy as np
 
+
 if __name__ == '__main__':
     # parse args
     args = args_parser()
