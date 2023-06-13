@@ -55,7 +55,7 @@ def args_parser():
     )
     parser.add_argument(
         '--comm_scheme',
-        default='adaptiveQSGD'
+        default='SGD'
     )
     args = parser.parse_args()
 

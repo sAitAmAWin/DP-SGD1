@@ -170,6 +170,9 @@ if __name__ == '__main__':
             total_train += args.local_ep
         elif args.comm_scheme == 'SGD':
             total_train += args.local_ep
+        else :
+            print("algorithm error")
+
     print("总训练轮次")
     print(total_train)
 
