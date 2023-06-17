@@ -48,6 +48,17 @@ if __name__ == '__main__':
             dict_users = cifar_iid(dataset_train, args.num_users)
         else:
             exit('Error: only consider IID setting in CIFAR10')
+
+    elif args.dataset == 'cifar-100':
+        test_cifar = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        trans_cifar = transforms.Compose([transforms.Resize(40), transforms.RandomHorizontalFlip(), transforms.RandomCrop(32),
+                                          transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        dataset_train = datasets.CIFAR100('../data/cifar-100', train=True, download=True, transform=trans_cifar)
+        dataset_test = datasets.CIFAR100('../data/cifar-100', train=False, download=True, transform=test_cifar)
+        if args.iid:
+            dict_users = cifar_iid(dataset_train, args.num_users)
+        else:
+            exit('Error: only consider IID setting in CIFAR10')
     else:
         exit('Error: unrecognized dataset')
     img_size = dataset_train[0][0].shape
@@ -123,14 +134,17 @@ if __name__ == '__main__':
         if args.comm_scheme != 'adaptiveQSGD' and (iter+1)%10 == 0:
             acc_test, loss_test = test_img(net_glob, dataset_test, args)
             acc_acuracy.append(acc_test)
+            loss_train.append(loss_test)
             print('Round {:3d}, test accuracy {:.3f}'.format(iter, acc_test))
         elif args.comm_scheme != 'adaptiveQSGD' and iter == 0:
             acc_test, loss_test = test_img(net_glob, dataset_test, args)
+            loss_train.append(loss_test)
             acc_acuracy.append(acc_test)
             print('Round {:3d}, test accuracy {:.3f}'.format(iter, acc_test))
         elif args.comm_scheme == 'adaptiveQSGD':
             acc_test, loss_test = test_img(net_glob, dataset_test, args)
             acc_acuracy.append(acc_test)
+            loss_train.append(loss_test)
             print('Round {:3d}, test accuracy {:.3f}'.format(iter, acc_test))
         if args.comm_scheme == 'adaptiveQSGD':
             # Adaptive sgd
@@ -140,8 +154,10 @@ if __name__ == '__main__':
             # print("alpha:")
             # print(alpha)
             # 计算本地更新轮次
+            total_iter = 300
+            comm_round = 30
             total_train += args.local_ep
-            args.local_ep = math.sqrt(((1-alpha**(1/2))**2)*(300**2)/((alpha**(30-iter))*(alpha**(-15)-1)**2))
+            args.local_ep = math.sqrt(((1-alpha**(1/2))**2)*(total_iter**2)/((alpha**(comm_round-iter))*(alpha**(-comm_round/2)-1)**2))
             args.local_ep=round(args.local_ep)
             print(args.local_ep)
             if args.local_ep<1:
@@ -184,7 +200,9 @@ if __name__ == '__main__':
     plt.ylabel('acc_test')
     plt.savefig('./save/fed_{}_{}_ep{}_localep{}_C{}_iid{}_{}_total_train{}_momentum{}_data-aug.png'.format(args.dataset, args.model, args.epochs, args.local_ep, args.frac, args.iid, args.comm_scheme, total_train, args.momentum))
     accuracy = torch.tensor(acc_acuracy)
+    loss_save = torch.tensor(loss_train)
     torch.save(accuracy, './save/train_data/algorithm_{}_dataset_{}_model_{}.txt'.format(args.comm_scheme, args.dataset, args.model))
+    torch.save(loss_save, './save/train_data/algorithm_{}_dataset_{}_model_{}_loss.txt')
 
     # testing
     net_glob.eval()
