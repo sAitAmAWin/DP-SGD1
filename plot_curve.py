@@ -3,10 +3,12 @@ import torch
 from utils.options import args_parser
 
 def plot_acc(args) :
-    enc1 = torch.load('./save/train_data/algorithm_quan_dataset_mnist_model_mlp.txt')
-    enc2 = torch.load('./save/train_data/algorithm_spar_dataset_mnist_model_mlp.txt')
-    enc3 = torch.load('./save/train_data/algorithm_adaptiveQSGD_dataset_mnist_model_mlp.txt')
-    enc4 = torch.load('./save/train_data/algorithm_SGD_dataset_mnist_model_mlp.txt')
+    dataset = "cifar-100"
+    model = "resnet18"
+    enc1 = torch.load('./save/train_data/algorithm_quan_dataset_{}_model_{}.txt'.format(dataset,model))
+    enc2 = torch.load('./save/train_data/algorithm_spar_dataset_{}_model_{}.txt'.format(dataset,model))
+    enc3 = torch.load('./save/train_data/algorithm_adaptiveQSGD_dataset_{}_model_{}.txt'.format(dataset,model))
+    enc4 = torch.load('./save/train_data/algorithm_SGD_dataset_{}_model_{}.txt'.format(dataset,model))
     temp1 = list(enc1)
     temp2 = list(enc2)
     temp3 = list(enc3)
@@ -18,7 +20,7 @@ def plot_acc(args) :
     plt.xlabel('per 10 epoch')
     plt.ylabel('test_accuracy')
     plt.legend(["quan", "spar", "LGS-SGD", "SGD"], loc='best')
-    plt.savefig('./save/all_curve/fed_{}_{}_ep{}_C{}_iid{}_momentum{}.png'.format(args.dataset, args.model,  args.epochs, args.frac, args.iid, args.momentum))
+    plt.savefig('./save/all_curve/fed_{}_{}_ep{}_C{}_iid{}_momentum{}.pdf'.format(dataset, model,  args.epochs, args.frac, args.iid, args.momentum))
     plt.show()
 
 if __name__ == "__main__":
