@@ -3,10 +3,10 @@ import torch
 from utils.options import args_parser
 
 def plot_acc(args) :
-    enc1 = torch.load('./save/train_data/algorithm_quan_dataset_cifar-100_model_resnet18_loss.txt')
-    enc2 = torch.load('./save/train_data/algorithm_spar_dataset_cifar-100_model_resnet18_loss.txt')
-    enc3 = torch.load('./save/train_data/algorithm_adaptiveQSGD_dataset_cifar-100_model_resnet18_loss.txt')
-    enc4 = torch.load('./save/train_data/algorithm_SGD_dataset_cifar-100_model_resnet18_loss.txt')
+    enc1 = torch.load('./save/train_data/algorithm_quan_dataset_mnist_model_mlp_loss.txt')
+    enc2 = torch.load('./save/train_data/algorithm_spar_dataset_mnist_model_mlp_loss.txt')
+    enc3 = torch.load('./save/train_data/algorithm_adaptiveQSGD_dataset_mnist_model_mlp_loss.txt')
+    enc4 = torch.load('./save/train_data/algorithm_SGD_dataset_mnist_model_mlp_loss.txt')
     temp1 = list(enc1)
     temp2 = list(enc2)
     temp3 = list(enc3)
