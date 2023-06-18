@@ -102,9 +102,9 @@ if __name__ == '__main__':
         print("Aggregation over all clients")
         w_locals = [w_glob for i in range(args.num_users)]
     if args.comm_scheme == 'local-SGD':  # 本地更新为8个epoch 每个epoch 16次本地更新
-        args.epochs = 30
+        args.epochs = 10
     elif args.comm_scheme == 'adaptiveQSGD':
-        args.epochs = 31
+        args.epochs = 11
     for iter in range(args.epochs):
         loss_locals = []
         if not args.all_clients:
@@ -154,8 +154,8 @@ if __name__ == '__main__':
             # print("alpha:")
             # print(alpha)
             # 计算本地更新轮次
-            total_iter = 300
-            comm_round = 30
+            total_iter = 100
+            comm_round = 10
             total_train += args.local_ep
             args.local_ep = math.sqrt(((1-alpha**(1/2))**2)*(total_iter**2)/((alpha**(comm_round-iter))*(alpha**(-comm_round/2)-1)**2))
             args.local_ep=round(args.local_ep)
@@ -166,10 +166,9 @@ if __name__ == '__main__':
             k = (args.local_ep * length*2 - 32) / args.q_quan   # sparcification level
             args.q_quan = math.floor(args.q_quan)
             args.q_spar = k/length
-            if iter>=20:
-                args.lr=0.001
+            # if iter>=20:
+               #  args.lr=0.001
             print('Round {:3d}, Average loss {:.3f}'.format(iter, loss_avg))
-            loss_train.append(loss_avg)
         elif args.comm_scheme == 'quan':
             args.q_quan = 2
             total_train += args.local_ep
@@ -202,7 +201,7 @@ if __name__ == '__main__':
     accuracy = torch.tensor(acc_acuracy)
     loss_save = torch.tensor(loss_train)
     torch.save(accuracy, './save/train_data/algorithm_{}_dataset_{}_model_{}.txt'.format(args.comm_scheme, args.dataset, args.model))
-    torch.save(loss_save, './save/train_data/algorithm_{}_dataset_{}_model_{}_loss.txt')
+    torch.save(loss_save, './save/train_data/algorithm_{}_dataset_{}_model_{}_loss.txt'.format(args.comm_scheme, args.dataset, args.model))
 
     # testing
     net_glob.eval()
