@@ -102,7 +102,8 @@ if __name__ == '__main__':
         print("Aggregation over all clients")
         w_locals = [w_glob for i in range(args.num_users)]
     if args.comm_scheme == 'local-SGD':  # 本地更新为8个epoch 每个epoch 16次本地更新
-        args.epochs = 10
+        args.epochs = args.epochs//5
+        print(args.epochs)
     elif args.comm_scheme == 'adaptiveQSGD':
         args.epochs = 11
     for iter in range(args.epochs):
@@ -154,7 +155,7 @@ if __name__ == '__main__':
             # print("alpha:")
             # print(alpha)
             # 计算本地更新轮次
-            total_iter = 100
+            total_iter = 300
             comm_round = 10
             total_train += args.local_ep
             args.local_ep = math.sqrt(((1-alpha**(1/2))**2)*(total_iter**2)/((alpha**(comm_round-iter))*(alpha**(-comm_round/2)-1)**2))
@@ -175,12 +176,15 @@ if __name__ == '__main__':
         elif args.comm_scheme == 'spar':
             args.q_spar = 0.0625
             total_train += args.local_ep
+        elif args.comm_scheme == 'topk':
+            args.q_spar = 0.0625
+            total_train += args.local_ep
         elif args.comm_scheme == 'AC-SGD':
             args.q_quan = math.log2(2*math.log(2)*(length*2-32))/2
             args.q_spar = (2*length-32)/args.q_quan
             total_train += args.local_ep
         elif args.comm_scheme == 'local-SGD':
-            args.local_ep = 10
+            args.local_ep = 5
             args.q_quan = 2*args.local_ep
             total_train += args.local_ep
         elif args.comm_scheme == 'SGD':

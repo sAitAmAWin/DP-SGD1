@@ -24,6 +24,29 @@ def randomk_nn(model, compression_ratio):
         param[i].data = torch.reshape(param[i].data, param_shape)
     return model
 
+def topk_nn(model, compression_ratio):
+    if compression_ratio == 1.0:
+        return model
+    param = list(model.parameters())
+    nc = len(param)
+    for i in range(nc):
+        param_shape = param[i].shape
+        param[i].data = torch.flatten(param[i])
+        length = len(param[i].data) ##模型参数长度
+        #print(length)
+        if torch.cuda.is_available():
+            mask = torch.ones(param[i].shape).cuda()
+            indices = torch.randperm(mask.shape[0]).cuda()
+        else:
+            mask = torch.ones(param[i].shape)
+            indices = torch.randperm(mask.shape[0])
+        num = int(length*(1-compression_ratio))
+        indices = torch.topk(torch.abs(param[i].data), num, largest=False)[1]
+        mask[indices] = 0
+        param[i].data = torch.mul(param[i].data, mask)
+        # param[i].data *= mask
+        param[i].data = torch.reshape(param[i].data, param_shape)
+    return model
 def randomk_nne(model, compression_ratio):
     if compression_ratio == 1.0:
         return None

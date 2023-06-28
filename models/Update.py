@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader, Dataset
 import numpy as np
 import random
 from utils.quantization import sr_nn,randomk_nn #引入量化稀疏化
+from utils.quantization import topk_nn
 ##from sklearn import metrics##作用不明
 
 
@@ -64,7 +65,10 @@ class LocalUpdate(object):
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss)/len(batch_loss))
         self.compute_update(initial_model=server_net, updated_model=net)  # 计算模型差值
-        self.q_update = randomk_nn(self.q_update, self.args.q_spar)  # 稀疏化
+        if self.args.comm_scheme == "spar":
+            self.q_update = randomk_nn(self.q_update, self.args.q_spar)  # 稀疏化
+        elif self.args.comm_scheme == "topk":
+            self.q_update = topk_nn(self.q_update,self.args.q_spar)
         self.q_update = sr_nn(self.q_update, self.args.q_quan)  # 量化
         return self.q_update.state_dict(), sum(epoch_loss) / len(epoch_loss)  # 返回client更新后模型
 
