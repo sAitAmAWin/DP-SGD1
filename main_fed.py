@@ -158,8 +158,6 @@ if __name__ == '__main__':
             total_iter = 300
             comm_round = 10
             total_train += args.local_ep
-            args.local_ep = math.sqrt(((1-alpha**(1/2))**2)*(total_iter**2)/((alpha**(comm_round-iter))*(alpha**(-comm_round/2)-1)**2))
-            args.local_ep=round(args.local_ep)
             print(args.local_ep)
             if args.local_ep<1:
                 args.local_ep=1

@@ -1,3 +1,5 @@
+import math
+
 import torch
 import numpy as np
 
@@ -135,3 +137,30 @@ def quantization_nne(model, compression_ratio, q_method):
     elif q_method == 'rounding':
         sr_nne(model, compression_ratio)
     else: raise ValueError('This quantization method not impelmented:'+ q_method)
+
+
+def gradient_descent_with_dp(model,  epsilon, sensitivity, alpha ):
+    """
+    使用差分隐私的梯度下降算法（高斯机制）
+    :param X: 特征矩阵
+    :param y: 目标值
+    :param learning_rate: 学习率
+    :param epsilon: 隐私预算
+    :param num_epochs: 迭代次数
+    :return: 模型参数
+    """
+    sigma = sensitivity*math.sqrt(alpha/(2*epsilon))  #标准差
+    noise=torch.normal(0, sigma, model.shape)  #高斯噪声
+    model+=noise
+    return model
+if __name__ == "__main__":
+    w = torch.rand(10,1)
+    sensitivity = 9
+    alpha = 1
+    epsilon = 3
+    sigma = sensitivity*math.sqrt(alpha/(2*epsilon))
+    print(sigma)
+    print(w)
+    noise = torch.normal(0, sigma, w.shape)
+    print(noise)
+    print(w+noise)
