@@ -3,8 +3,8 @@ import torch
 from utils.options import args_parser
 
 def plot_acc(args) :
-    dataset = "cifar-100"
-    model = "resnet18"
+    dataset = "mnist"
+    model = "mlp"
     enc1 = torch.load('./save/train_data/algorithm_quan_dataset_{}_model_{}_loss.txt'.format(dataset,model))
     enc2 = torch.load('./save/train_data/algorithm_spar_dataset_{}_model_{}_loss.txt'.format(dataset,model))
     enc3 = torch.load('./save/train_data/algorithm_adaptiveQSGD_dataset_{}_model_{}_loss.txt'.format(dataset,model))

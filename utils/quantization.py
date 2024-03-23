@@ -149,18 +149,28 @@ def gradient_descent_with_dp(model,  epsilon, sensitivity, alpha ):
     :param num_epochs: 迭代次数
     :return: 模型参数
     """
+
     sigma = sensitivity*math.sqrt(alpha/(2*epsilon))  #标准差
-    noise=torch.normal(0, sigma, model.shape)  #高斯噪声
-    model+=noise
+    param = list(model.parameters())
+    nc = len(param)
+    for i in range(nc):
+        param_shape = param[i].shape
+        param[i].data += torch.normal(0, sigma, param_shape)
     return model
 if __name__ == "__main__":
-    w = torch.rand(10,1)
-    sensitivity = 9
-    alpha = 1
-    epsilon = 3
-    sigma = sensitivity*math.sqrt(alpha/(2*epsilon))
-    print(sigma)
+    w = torch.rand(10, 1)
     print(w)
-    noise = torch.normal(0, sigma, w.shape)
-    print(noise)
-    print(w+noise)
+    s=list(w)
+    for i in range (len(s)):
+        s[i]+=1
+    print(w)
+
+    #sensitivity = 9
+    #alpha = 1
+    #epsilon = 3
+    #sigma = sensitivity*math.sqrt(alpha/(2*epsilon))
+    #print(sigma)
+    #print(w)
+    #noise = torch.normal(0, sigma, w.shape)
+    #print(noise)
+    #print(w+noise)

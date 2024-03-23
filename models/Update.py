@@ -28,14 +28,14 @@ class DatasetSplit(Dataset):
 
 
 class LocalUpdate(object):
-    def __init__(self, args, dataset=None, idxs=None):
+    def __init__(self, args,  dataset=None, idxs=None):
         self.args = args
         self.loss_func = nn.CrossEntropyLoss(reduction="mean")
         self.selected_clients = []
         self.ldr_train = DataLoader(DatasetSplit(dataset, idxs), batch_size=self.args.local_bs, shuffle=True)
         self.q_update = None  # 模型更新参数
 
-    def train(self, net):
+    def train(self, net, t):
         net.train()  # nn.Module.train：把本层和子层的training设置为true--使用BatchNormalizetion()和Dropout()
         # train and update
         server_net = copy.deepcopy(net)  # 保存初始网络
@@ -66,9 +66,15 @@ class LocalUpdate(object):
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss)/len(batch_loss))
         self.compute_update(initial_model=server_net, updated_model=net)  # 计算模型差值
-
-        self.q_update = gradient_descent_with_dp(self.q_update, epsilon=1, sensitivity=10, alpha= 1)  # 量化
-
+        if self.args.comm_scheme == 'DP-SGD':
+            self.q_update = gradient_descent_with_dp(self.q_update, epsilon=100, sensitivity=5, alpha = 1)  # 量化
+        elif self.args.comm_scheme == 'ADP-SGD':
+            m = 1.01
+            cons = (m-1)/(pow(m, self.args.epochs+1)-1)
+            epsilon = pow(m, t)*cons*30000
+            print("epsilon:{:.3f}".format(epsilon))
+            #print("tot:{:.3f}".format(tot))
+            self.q_update = gradient_descent_with_dp(self.q_update, epsilon =epsilon, sensitivity=5, alpha =1)
         return self.q_update.state_dict(), sum(epoch_loss) / len(epoch_loss)  # 返回client更新后模型
 
     def compute_update(self, initial_model, updated_model):

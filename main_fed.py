@@ -114,7 +114,7 @@ if __name__ == '__main__':
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
         for idx in idxs_users:
             local = LocalUpdate(args=args, dataset=dataset_train, idxs=dict_users[idx])
-            w, loss = local.train(net=copy.deepcopy(net_glob).to(args.device))  # w：client更新后模型
+            w, loss = local.train(net=copy.deepcopy(net_glob), t=iter)  # w：client更新后模型
             if args.all_clients:
                 w_locals[idx] = copy.deepcopy(w)
             else:
@@ -132,62 +132,12 @@ if __name__ == '__main__':
         # print loss
         loss_avg = sum(loss_locals) / len(loss_locals)
         # 画acc_accuracy
-        if args.comm_scheme != 'adaptiveQSGD' and (iter+1)%10 == 0:
-            acc_test, loss_test = test_img(net_glob, dataset_test, args)
-            acc_acuracy.append(acc_test)
-            loss_train.append(loss_test)
-            print('Round {:3d}, test accuracy {:.3f}'.format(iter, acc_test))
-        elif args.comm_scheme != 'adaptiveQSGD' and iter == 0:
-            acc_test, loss_test = test_img(net_glob, dataset_test, args)
-            loss_train.append(loss_test)
-            acc_acuracy.append(acc_test)
-            print('Round {:3d}, test accuracy {:.3f}'.format(iter, acc_test))
-        elif args.comm_scheme == 'adaptiveQSGD':
-            acc_test, loss_test = test_img(net_glob, dataset_test, args)
-            acc_acuracy.append(acc_test)
-            loss_train.append(loss_test)
-            print('Round {:3d}, test accuracy {:.3f}'.format(iter, acc_test))
-        if args.comm_scheme == 'adaptiveQSGD':
-            # Adaptive sgd
-            print(iter)
-            alpha = 0.95
-            # alpha = (loss_avg/loss_0)**(1/(iter+1))  # 计算alpha,iter从0开始取值
-            # print("alpha:")
-            # print(alpha)
-            # 计算本地更新轮次
-            total_iter = 300
-            comm_round = 10
-            total_train += args.local_ep
-            print(args.local_ep)
-            if args.local_ep<1:
-                args.local_ep=1
-            args.q_quan = math.log2(2*math.log(2)*(args.local_ep*length*2-32))/2  # quantization bit
-            k = (args.local_ep * length*2 - 32) / args.q_quan   # sparcification level
-            args.q_quan = math.floor(args.q_quan)
-            args.q_spar = k/length
-            # if iter>=20:
-               #  args.lr=0.001
-            print('Round {:3d}, Average loss {:.3f}'.format(iter, loss_avg))
-        elif args.comm_scheme == 'quan':
-            args.q_quan = 2
-            total_train += args.local_ep
-        elif args.comm_scheme == 'spar':
-            args.q_spar = 0.0625
-            total_train += args.local_ep
-        elif args.comm_scheme == 'topk':
-            args.q_spar = 0.0625
-            total_train += args.local_ep
-        elif args.comm_scheme == 'AC-SGD':
-            args.q_quan = math.log2(2*math.log(2)*(length*2-32))/2
-            args.q_spar = (2*length-32)/args.q_quan
-            total_train += args.local_ep
-        elif args.comm_scheme == 'local-SGD':
-            args.local_ep = 5
-            args.q_quan = 2*args.local_ep
-            total_train += args.local_ep
-        elif args.comm_scheme == 'SGD':
-            total_train += args.local_ep
-        else :
+        acc_test, loss_test = test_img(net_glob, dataset_test, args)
+        loss_train.append(loss_test)
+        acc_acuracy.append(acc_test)
+        print('Round {:3d}, test accuracy {:.3f}'.format(iter, acc_test))
+        print(args.comm_scheme)
+        if args.comm_scheme!='SGD' and args.comm_scheme!='DP-SGD':
             print("algorithm error")
 
     print("总训练轮次")
