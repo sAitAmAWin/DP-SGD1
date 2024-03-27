@@ -67,14 +67,24 @@ class LocalUpdate(object):
             epoch_loss.append(sum(batch_loss)/len(batch_loss))
         self.compute_update(initial_model=server_net, updated_model=net)  # 计算模型差值
         if self.args.comm_scheme == 'DP-SGD':
-            self.q_update = gradient_descent_with_dp(self.q_update, epsilon=100, sensitivity=5, alpha = 1)  # 量化
+            self.q_update = gradient_descent_with_dp(self.q_update, epsilon=self.args.epsilon, sensitivity=5, alpha = 1)  # 量化
+            print("epsilon:{:.3f}".format(self.args.epsilon))
         elif self.args.comm_scheme == 'ADP-SGD':
             m = 1.01
             cons = (m-1)/(pow(m, self.args.epochs+1)-1)
-            epsilon = pow(m, t)*cons*30000
+            epsilon = pow(m, t)*cons*self.args.epsilon*self.args.epochs
             print("epsilon:{:.3f}".format(epsilon))
             #print("tot:{:.3f}".format(tot))
             self.q_update = gradient_descent_with_dp(self.q_update, epsilon =epsilon, sensitivity=5, alpha =1)
+        elif self.args.comm_scheme == 'AdaDP-SGD':
+            m = 1.01
+            cons = (m-1)/(pow(m, self.args.epochs+1)-1)
+            epsilon = pow(m, t)*cons*self.args.epsilon*self.args.epochs
+            sensitivity = self.args.sensitivity*pow(0.99, t)
+            print("epsilon:{:.3f}".format(epsilon))
+            #print("tot:{:.3f}".format(tot))
+            #torch.nn.utils.clip_grad_value_(self.q_update, clip_value=sensitivity)
+            self.q_update = gradient_descent_with_dp(self.q_update, epsilon =epsilon, sensitivity=sensitivity, alpha =1)
         return self.q_update.state_dict(), sum(epoch_loss) / len(epoch_loss)  # 返回client更新后模型
 
     def compute_update(self, initial_model, updated_model):

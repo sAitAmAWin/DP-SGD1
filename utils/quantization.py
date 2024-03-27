@@ -151,9 +151,16 @@ def gradient_descent_with_dp(model,  epsilon, sensitivity, alpha ):
     """
 
     sigma = sensitivity*math.sqrt(alpha/(2*epsilon))  #标准差
+    #torch.nn.utils.clip_grad_value_(model.parameters(), sensitivity)
     param = list(model.parameters())
     nc = len(param)
+
+    for param in model.parameters():
+        if param.grad is not None and param.grad.nelement() > 0:
+            torch.nn.utils.clip_grad_value_([param], sensitivity)
+
     for i in range(nc):
+        #gradient_descent_with_dp(self.q_update, epsilon=epsilon, sensitivity=sensitivity, alpha=1)
         param_shape = param[i].shape
         param[i].data += torch.normal(0, sigma, param_shape)
     return model
@@ -161,8 +168,8 @@ if __name__ == "__main__":
     w = torch.rand(10, 1)
     print(w)
     s=list(w)
-    for i in range (len(s)):
-        s[i]+=1
+    #  for i in range (len(s)):
+    #     s[i]+=1
     print(w)
 
     #sensitivity = 9
