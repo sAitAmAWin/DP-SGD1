@@ -154,10 +154,7 @@ def gradient_descent_with_dp(model,  epsilon, sensitivity, alpha ):
     #torch.nn.utils.clip_grad_value_(model.parameters(), sensitivity)
     param = list(model.parameters())
     nc = len(param)
-
-    for param in model.parameters():
-        if param.grad is not None and param.grad.nelement() > 0:
-            torch.nn.utils.clip_grad_value_([param], sensitivity)
+    torch.nn.utils.clip_grad_norm_(model.parameters(), sensitivity, 2)
 
     for i in range(nc):
         #gradient_descent_with_dp(self.q_update, epsilon=epsilon, sensitivity=sensitivity, alpha=1)

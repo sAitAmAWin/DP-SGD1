@@ -8,7 +8,10 @@ import matplotlib.pyplot as plt
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import copy
+import torchvision
 from torchvision import datasets, transforms
+from torch.utils import data
+from torchvision import transforms
 import torch
 import datetime
 from utils.sampling import mnist_iid, mnist_noniid, cifar_iid
@@ -28,10 +31,12 @@ if __name__ == '__main__':
     args = args_parser()
     args.device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() and args.gpu != -1 else 'cpu')
     print(args.device)
-    epsilon = [0.1, 0.2, 0.3, 0.4, 0.5]
+    # epsilon = [0.1, 0.2, 0.3, 0.4, 0.5]
+    epsilon = [0.5]
     for ep in epsilon:
         args.epsilon=ep
-        algo = ['ADP-SGD', 'DP-SGD', 'AdaDP-SGD']
+        algo = ['SGD']
+        # algo = ['AdaDP-SGD']
         for al in algo:
             args.comm_scheme = al
             # load dataset and split users
@@ -48,8 +53,8 @@ if __name__ == '__main__':
                 test_cifar = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
                 trans_cifar = transforms.Compose([transforms.Resize(40), transforms.RandomHorizontalFlip(), transforms.RandomCrop(32),
                                                   transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-                dataset_train = datasets.CIFAR10('../data/cifar', train=True, download=True, transform=trans_cifar)
-                dataset_test = datasets.CIFAR10('../data/cifar', train=False, download=True, transform=test_cifar)
+                dataset_train = torchvision.datasets.CIFAR10('../data/cifar', train=True, download=True, transform=trans_cifar)
+                dataset_test = torchvision.datasets.CIFAR10('../data/cifar', train=False, download=True, transform=test_cifar)
                 if args.iid:
                     dict_users = cifar_iid(dataset_train, args.num_users)
                 else:
@@ -65,6 +70,19 @@ if __name__ == '__main__':
                     dict_users = cifar_iid(dataset_train, args.num_users)
                 else:
                     exit('Error: only consider IID setting in CIFAR10')
+            elif  args.dataset == 'fashion-mnist':
+                trans_mnist = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
+                dataset_train = datasets.FashionMNIST(root='../data/Fashionminist',
+                                                                 train=True, download=True,
+                                                                 transform=transforms.ToTensor())
+                dataset_test = datasets.FashionMNIST(root='../data/Fashionminist',
+                                                                train=True, download=True,
+                                                                transform=transforms.ToTensor())
+                if args.iid:
+                    dict_users = cifar_iid(dataset_train, args.num_users)
+                else:
+                    exit('Error: only consider IID setting in CIFAR10')
+
             else:
                 exit('Error: unrecognized dataset')
             img_size = dataset_train[0][0].shape
@@ -158,11 +176,11 @@ if __name__ == '__main__':
             plt.figure()
             plt.plot(range(len(acc_acuracy)), acc_acuracy)
             plt.ylabel('acc_test')
-            plt.savefig('./save/fed_{}_{}_ep{}_localep{}_C{}_iid{}_{}_total_train{}_momentum{}_epsilon{}_data-aug.png'.format(args.dataset, args.model, args.epochs, args.local_ep, args.frac, args.iid, args.comm_scheme, total_train, args.momentum, args.epsilon))
+            plt.savefig('./save/fed_{}_{}_ep{}_localep{}_C{}_iid{}_{}_lr{}_momentum{}_epsilon{}_data-aug.png'.format(args.dataset, args.model, args.epochs, args.local_ep, args.frac, args.iid, args.comm_scheme, args.lr,  args.momentum, args.epsilon))
             accuracy = torch.tensor(acc_acuracy)
             loss_save = torch.tensor(loss_train)
-            torch.save(accuracy, './save/train_data/algorithm_{}_dataset_{}_model_{}_epsilon{}.txt'.format(args.comm_scheme, args.dataset, args.model, args.epsilon))
-            torch.save(loss_save, './save/train_data/algorithm_{}_dataset_{}_model_{}_epsilon{}_loss.txt'.format(args.comm_scheme, args.dataset, args.model, args.epsilon))
+            torch.save(accuracy, './save/train_data/algorithm_{}_lr{}_ep{}_dataset_{}_model_{}_epsilon{}_acc.txt'.format(args.comm_scheme, args.lr, args.epochs, args.dataset, args.model, args.epsilon))
+            torch.save(loss_save, './save/train_data/algorithm_{}_lr{}_ep{}_dataset_{}_model_{}_epsilon{}_loss.txt'.format(args.comm_scheme, args.lr, args.epochs, args.dataset, args.model, args.epsilon))
 
             # testing
             net_glob.eval()

@@ -9,13 +9,13 @@ import datetime
 def args_parser():
     parser = argparse.ArgumentParser()
     # federated arguments
-    parser.add_argument('--epochs', type=int, default=200, help="rounds of training")
+    parser.add_argument('--epochs', type=int, default=100, help="rounds of training")
     parser.add_argument('--num_users', type=int, default=8, help="number of users: K")
     parser.add_argument('--frac', type=float, default=0.1, help="the fraction of clients: C")
     parser.add_argument('--local_ep', type=int, default=1, help="the number of local epochs: E")
     parser.add_argument('--local_bs', type=int, default=128, help="local batch size: B")
     parser.add_argument('--bs', type=int, default=128, help="test batch size")
-    parser.add_argument('--lr', type=float, default=0.001, help="learning rate")
+    parser.add_argument('--lr', type=float, default=0.005, help="learning rate")
     parser.add_argument('--momentum', type=float, default=0.1, help="SGD momentum (default: 0.5)")
     parser.add_argument('--split', type=str, default='user', help="train-test split type, user or sample")
     parser.add_argument('--epsilon', type=int, default=0.4, help="rounds of training")
@@ -32,7 +32,7 @@ def args_parser():
                         help="Whether use max pooling rather than strided convolutions")
 
     # other arguments
-    parser.add_argument('--dataset', type=str, default='mnist', help="name of dataset")
+    parser.add_argument('--dataset', type=str, default='fashion-mnist', help="name of dataset")
     parser.add_argument('--iid', action='store_true', default=True, help='whether i.i.d or not')
     parser.add_argument('--num_classes', type=int, default=10, help="number of classes")
     parser.add_argument('--num_channels', type=int, default=3, help="number of channels of imges")
@@ -57,7 +57,7 @@ def args_parser():
     )
     parser.add_argument(
         '--comm_scheme',
-        default='DP-SGD'
+        default='SGD'
     )
     args = parser.parse_args()
 
